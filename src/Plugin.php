@@ -44,16 +44,22 @@ class Plugin extends \craft\base\Plugin
         if(Craft::$app->plugins->isPluginEnabled('commerce')) {
             if ($settings->trackCommerceCartUpdated) {
                 Event::on(Order::class, Order::EVENT_AFTER_SAVE, function (Event $e) {
-                    Plugin::getInstance()->track->onCartUpdated($e);
+                    // TODO: Add event to enable this behaviour
+                    if (!$e->sender->replacementOrder) {
+                        Plugin::getInstance()->track->onCartUpdated($e);
+                    }
                 });
             }
 
             if ($settings->trackCommerceOrderCompleted) {
                 Event::on(Order::class, Order::EVENT_AFTER_COMPLETE_ORDER, function (Event $e) {
-                    Craft::$app->getQueue()->delay(10)->push(new TrackOrderComplete([
-                        'name' => $e->name,
-                        'orderId' => $e->sender->id,
-                    ]));
+                    // TODO: Add event to enable this behaviour
+                    if (!$e->sender->replacementOrder) {
+                        Craft::$app->getQueue()->delay(10)->push(new TrackOrderComplete([
+                            'name' => $e->name,
+                            'orderId' => $e->sender->id,
+                        ]));
+                    }
                 });
             }
         }
